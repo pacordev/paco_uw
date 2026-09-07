@@ -2,7 +2,7 @@ My goal:
 - To buil a data-driven rules engine for insurance underwriting, built in PostgreSQL. 
 - Products, questions, and decision rules all live in tables
 - Questions must include an expected answer
-- All underwritting questions must be related to a quote_id and not an application_id
+- All underwritting questions must be related to a quote_id
 - Questions must follow a specific order
 - Adding a new product or changing a rule should be  data change and not a code change.
 - I want to implement two evaluation strategies:

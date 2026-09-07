@@ -1,11 +1,11 @@
-# Underwriting Rules Engine
+# 🛡️ Underwriting Rules Engine
 
 A data-driven insurance underwriting engine, built entirely in PostgreSQL. Products,
 questions, and rules all live in tables — adding a new product or tweaking a rule is just a
 data change, not a code change. If you want the full requirements, check `goal.txt`; for the
 full build history and the API plan we haven't started yet, see `uw_plan.md`.
 
-## How it works
+## ⚙️ How it works
 
 An applicant works through a **quote**: we show them a product's questions in order, they
 answer, and then we run those answers against the product's rules to get a decision —
@@ -25,7 +25,7 @@ than Model A if a worse rule only becomes decidable further down the question li
 seeded a demo quote for every product that shows this divergence on purpose, so it's easy to
 see (check `sql/phase6_tests.sql`).
 
-## Running it
+## 🐳 Running it
 
 ```bash
 docker compose up -d          # first run builds schema + seed data; after that it just reuses it
@@ -37,9 +37,9 @@ You need a `.env` file — see `docker-compose.yml` for what it expects, it won'
 one. Data sticks around in the `uw_pgdata` Docker volume across restarts, so nothing gets
 wiped unless you ask for it.
 
-## Tables
+## 🗄️ Tables
 
-### Products & questions — the interview definition
+### 📋 Products & questions — the interview definition
 
 **`insurance_product`** — one row per product (`LIFE_SIMPLE`, `AUTO_BASIC`, etc.). Adding a
 new product is just inserting a row here, plus its questions and rules below.
@@ -55,7 +55,7 @@ all, and should never be exposed to an applicant-facing client (that'd basically
 answer key). `UNIQUE(product_id, question_id)` and `UNIQUE(product_id, sequence)` keep the
 order unambiguous, which Model B relies on.
 
-### Quotes & answers — one applicant's run through a product
+### 🙋 Quotes & answers — one applicant's run through a product
 
 **`quote`** — one applicant's attempt at a product. This is the anchor for everything else —
 answers and evaluation results are always tied to a `quote_id`, never to an "application."
@@ -66,7 +66,7 @@ evaluate. `UNIQUE(quote_id, question_id)` means one answer per question per quot
 `answer_type`/`enum_options` before it even gets written, so garbage data never makes it to
 the evaluation functions.
 
-### Rules — where the actual decisions come from
+### ⚖️ Rules — where the actual decisions come from
 
 **`uw_outcome`** (a type, not a table) — the four possible decisions: `accept`,
 `increase_premium`, `refer_to_insurer`, `decline`.
@@ -83,7 +83,7 @@ want rules matching vacuously by accident).
 **`uw_outcome_rank`** — severity ranking (`accept`=1 ... `decline`=4) that Model A uses to
 pick the single worst outcome out of everything that matched.
 
-### Evaluation history — so we can audit what happened
+### 🧾 Evaluation history — so we can audit what happened
 
 **`quote_evaluation`** — one row per evaluation run. We never overwrite these, so both
 strategies' results stick around even when they disagree, and every past decision stays
@@ -93,7 +93,7 @@ functions themselves don't touch the database, they just compute.
 **`quote_latest_evaluation`** (view) — the latest row per `(quote_id, strategy)`, for when you
 just want "what's the current status" without caring about the history table's rules.
 
-## Core functions
+## 🔧 Core functions
 
 | Function | What it does |
 |---|---|
@@ -103,9 +103,9 @@ just want "what's the current status" without caring about the history table's r
 | `evaluate_quote_short_circuit(quote_id)` | Model B — stops early on a matching stop-rule, falls back to Model A otherwise. |
 | `evaluate_and_record_quote(quote_id, strategy)` | Runs a strategy and saves the outcome to `quote_evaluation`. Only function that actually writes an outcome. |
 
-## Where things stand
+## 🗺️ Where things stand
 
-**The database (done):** we built this in 6 phases, each one a separate file in `sql/`, and
+**✅ The database (done):** we built this in 6 phases, each one a separate file in `sql/`, and
 all 80 tests are green against Postgres 16.
 
 1. Core schema — products, questions, quote, quote_answer
@@ -119,7 +119,7 @@ We deliberately left a couple of things out of v1: rule versioning (editing a ru
 how *past* quotes would re-evaluate — no snapshotting), and multi-quote-per-application
 modeling.
 
-**The API layer (planned, not started):** we're building this in Python + FastAPI, as a thin
+**🚧 The API layer (planned, not started):** we're building this in Python + FastAPI, as a thin
 layer that just calls into the SQL above — no business logic duplicated in app code. Draft
 contract:
 
@@ -133,7 +133,7 @@ contract:
 `uw_plan.md` is the living version of this — phase-by-phase, checked off as we go — so check
 there for anything more current than what's written here.
 
-## Project structure
+## 📁 Project structure
 
 ```
 sql/
