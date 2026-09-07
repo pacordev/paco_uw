@@ -1,0 +1,35 @@
+services:
+  db_uw:
+    image: postgres:16-alpine
+    container_name: paco_uw
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set - copy or create .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set - copy or create .env}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set - copy or create .env}
+    ports:
+      - "${POSTGRES_PORT:?POSTGRES_PORT is not set - copy or create .env}:5432"
+    volumes:
+      # Named volume: this is what makes data survive `docker compose down`/`up`
+      # and any future edits/additions to products, rules, or quotes.
+      - uw_pgdata:/var/lib/postgresql/data
+      # Schema + seed data. Postgres only runs files in docker-entrypoint-initdb.d
+      # when the data directory is EMPTY (i.e. once, on first-ever startup of a
+      # fresh volume) - so this builds the DB once, then gets out of the way.
+      # phase6_tests.sql is deliberately not mounted here; run it on demand with
+      # scripts/run_tests.sh instead, since it inserts throwaway test rows.
+      - ./sql/phase1_core_schema.sql:/docker-entrypoint-initdb.d/01_phase1_core_schema.sql:ro
+      - ./sql/phase2_expected_answer.sql:/docker-entrypoint-initdb.d/02_phase2_expected_answer.sql:ro
+      - ./sql/phase3_rules_engine.sql:/docker-entrypoint-initdb.d/03_phase3_rules_engine.sql:ro
+      - ./sql/phase4_evaluation_history.sql:/docker-entrypoint-initdb.d/04_phase4_evaluation_history.sql:ro
+      - ./sql/phase5_hardening.sql:/docker-entrypoint-initdb.d/05_phase5_hardening.sql:ro
+      - ./sql/phase6_seed_data.sql:/docker-entrypoint-initdb.d/06_phase6_seed_data.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  uw_pgdata:
+    name: uw_pgdata

@@ -1,0 +1,10 @@
+My goal:
+- To buil a data-driven rules engine for insurance underwriting, built in PostgreSQL. 
+- Products, questions, and decision rules all live in tables
+- Questions must include an expected answer
+- All underwritting questions must be related to a quote_id and not an application_id
+- Questions must follow a specific order
+- Adding a new product or changing a rule should be  data change and not a code change.
+- I want to implement two evaluation strategies:
+  * Model A (evaluate full application) — look at every answer, evaluate every rule, and return the single worst outcome.
+  * Model B (evaluate short circuit application) — walk the questions in order and stop as soon as a rule flagged to short-circuit fully matches without needing to look at later answers.
