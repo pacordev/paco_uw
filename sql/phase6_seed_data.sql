@@ -121,11 +121,11 @@ VALUES ('AUTO_BASIC', 'Basic Auto Insurance', 'Basic auto insurance product with
 
 INSERT INTO uw_question (code, text, answer_type, enum_options)
 VALUES
-	('Q_AUTO_DUI', 'Any DUI/DWI convictions?', 'boolean', NULL),
+	('Q_AUTO_IMPAIRED', 'Any impaired driving convictions?', 'boolean', NULL),
 	('Q_AUTO_ACCIDENTS', 'Any accidents in the last 5 years?', 'boolean', NULL),
 	('Q_AUTO_AGE', 'Driver age?', 'number', NULL),
 	('Q_AUTO_VIOLATIONS', 'Any moving violations in the last 3 years?', 'boolean', NULL),
-	('Q_AUTO_MILEAGE', 'Annual mileage?', 'number', NULL)
+	('Q_AUTO_MILEAGE', 'Annual kilometres driven?', 'number', NULL)
 ;
 
 INSERT INTO product_question (product_id, question_id, sequence, is_mandatory, expected_answer)
@@ -134,7 +134,7 @@ FROM insurance_product p
 JOIN uw_question q ON TRUE
 JOIN (
 	VALUES
-		('Q_AUTO_DUI', 1, 'false'),
+		('Q_AUTO_IMPAIRED', 1, 'false'),
 		('Q_AUTO_ACCIDENTS', 2, 'false'),
 		('Q_AUTO_AGE', 3, '35'),
 		('Q_AUTO_VIOLATIONS', 4, 'false'),
@@ -148,10 +148,10 @@ SELECT p.id, r.name, r.priority, r.outcome::uw_outcome, r.stop_evaluation
 FROM insurance_product p
 JOIN (
 	VALUES
-		('DUI conviction',      1, 'decline',          TRUE),
+		('Impaired driving conviction', 1, 'decline',          TRUE),
 		('Accident history',    1, 'refer_to_insurer',  TRUE),
 		('Young driver',        1, 'increase_premium',  FALSE),
-		('High annual mileage', 1, 'increase_premium',  FALSE),
+		('High annual distance driven', 1, 'increase_premium',  FALSE),
 		('Moving violations',   1, 'increase_premium',  FALSE),
 		('Young driver with violations', 1, 'decline', FALSE)
 ) AS r(name, priority, outcome, stop_evaluation) ON TRUE
@@ -164,10 +164,10 @@ FROM uw_rule ru
 JOIN insurance_product p ON p.id = ru.product_id AND p.code = 'AUTO_BASIC'
 JOIN (
 	VALUES
-		('DUI conviction',               'Q_AUTO_DUI',        '=', 'true'),
+		('Impaired driving conviction',  'Q_AUTO_IMPAIRED',   '=', 'true'),
 		('Accident history',             'Q_AUTO_ACCIDENTS',  '=', 'true'),
 		('Young driver',                 'Q_AUTO_AGE',        '<', '21'),
-		('High annual mileage',          'Q_AUTO_MILEAGE',    '>', '20000'),
+		('High annual distance driven',  'Q_AUTO_MILEAGE',    '>', '20000'),
 		('Moving violations',            'Q_AUTO_VIOLATIONS', '=', 'true'),
 		('Young driver with violations', 'Q_AUTO_AGE',        '<', '21'),
 		('Young driver with violations', 'Q_AUTO_VIOLATIONS', '=', 'true')
@@ -176,7 +176,7 @@ JOIN (
 JOIN uw_question q ON q.code = c.question_code
 ;
 
--- quote 3: no DUI/accidents, but a young driver with violations -> compound decline (both models)
+-- quote 3: no impaired driving/accidents, but a young driver with violations -> compound decline (both models)
 INSERT INTO quote (product_id) SELECT id FROM insurance_product WHERE code = 'AUTO_BASIC';
 INSERT INTO quote_answer (quote_id, question_id, answer_text)
 SELECT (SELECT max(id) FROM quote WHERE product_id = (SELECT id FROM insurance_product WHERE code = 'AUTO_BASIC')),
@@ -184,7 +184,7 @@ SELECT (SELECT max(id) FROM quote WHERE product_id = (SELECT id FROM insurance_p
 FROM uw_question q
 JOIN (
 	VALUES
-		('Q_AUTO_DUI', 'false'),
+		('Q_AUTO_IMPAIRED', 'false'),
 		('Q_AUTO_ACCIDENTS', 'false'),
 		('Q_AUTO_AGE', '19'),
 		('Q_AUTO_VIOLATIONS', 'true'),
@@ -200,7 +200,7 @@ SELECT (SELECT max(id) FROM quote WHERE product_id = (SELECT id FROM insurance_p
 FROM uw_question q
 JOIN (
 	VALUES
-		('Q_AUTO_DUI', 'false'),
+		('Q_AUTO_IMPAIRED', 'false'),
 		('Q_AUTO_ACCIDENTS', 'true'),
 		('Q_AUTO_AGE', '35'),
 		('Q_AUTO_VIOLATIONS', 'false'),

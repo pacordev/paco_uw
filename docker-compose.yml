@@ -24,6 +24,7 @@ services:
       - ./sql/phase4_evaluation_history.sql:/docker-entrypoint-initdb.d/04_phase4_evaluation_history.sql:ro
       - ./sql/phase5_hardening.sql:/docker-entrypoint-initdb.d/05_phase5_hardening.sql:ro
       - ./sql/phase6_seed_data.sql:/docker-entrypoint-initdb.d/06_phase6_seed_data.sql:ro
+      - ./sql/phase7_quote_access_token.sql:/docker-entrypoint-initdb.d/07_phase7_quote_access_token.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
