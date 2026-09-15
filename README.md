@@ -59,6 +59,9 @@ order unambiguous, which Model B relies on.
 
 **`quote`** — one applicant's attempt at a product. This is the anchor for everything else —
 answers and evaluation results are always tied to a `quote_id`, never to an "application."
+`access_token` (a random `UUID`, unique) exists because `quote_id` alone is a guessable
+sequential integer — the API requires this token on every request scoped to a `quote_id`, so
+one applicant can't read or overwrite another's answers just by incrementing the id.
 
 **`quote_answer`** — the actual answers, stored as text and cast to the right type when we
 evaluate. `UNIQUE(quote_id, question_id)` means one answer per question per quote. A trigger
@@ -119,16 +122,21 @@ We deliberately left a couple of things out of v1: rule versioning (editing a ru
 how *past* quotes would re-evaluate — no snapshotting), and multi-quote-per-application
 modeling.
 
-**🚧 The API layer (planned, not started):** we're building this in Python + FastAPI, as a thin
-layer that just calls into the SQL above — no business logic duplicated in app code. Draft
-contract:
+**✅ The API layer (built, in a sibling repo):** a thin Python + FastAPI layer over the SQL
+above — no business logic duplicated in app code — lives in
+[`underwritting_api`](../underwritting_api). Public, applicant-facing endpoints:
 
 - `GET /products`
 - `GET /products/{code}/questions` (never returns `expected_answer` — that'd leak the answer key)
-- `POST /quotes` → `{quote_id}`
+- `POST /quotes` → `{quote_id, access_token}`
 - `POST /quotes/{quote_id}/answers`
 - `POST /quotes/{quote_id}/evaluate` → `{outcome}`
-- `GET /quotes/{quote_id}` (status/history)
+
+Plus admin-only endpoints (behind an `X-Admin-Key` header) for building the catalog itself —
+`POST /products`, `POST /products/{code}/questions`, `POST /products/{code}/rules` — so a new
+product/rule can be added from a request instead of a hand-written SQL file, while staying
+true to "it's a data change, not a code change." See `underwritting_api/README.md` for the
+full contract, security model, and how to run/test it.
 
 `uw_plan.md` is the living version of this — phase-by-phase, checked off as we go — so check
 there for anything more current than what's written here.
@@ -144,7 +152,8 @@ sql/
   phase5_hardening.sql          uniqueness constraints, indexes, answer-validation trigger
   phase6_seed_data.sql          8 demo products with questions, rules, and demo quotes
   phase6_tests.sql              80-assertion test suite (unit-level + per-product demo checks)
-docker-compose.yml               Postgres 16, applies phase1-6_seed_data on first run
+  phase7_quote_access_token.sql adds quote.access_token, so a bare quote_id can't be guessed
+docker-compose.yml               Postgres 16, applies phase1-7 (not phase6_tests) on first run
 scripts/run_tests.sh             runs phase6_tests.sql against the running container
 scripts/reset_db.sh              wipes the volume and rebuilds from scratch
 uw_plan.md                       full build history + the API layer plan we haven't started
