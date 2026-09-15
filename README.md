@@ -3,7 +3,7 @@
 A data-driven insurance underwriting engine, built entirely in PostgreSQL. Products,
 questions, and rules all live in tables — adding a new product or tweaking a rule is just a
 data change, not a code change. If you want the full requirements, check `goal.txt`; for the
-full build history and the API plan we haven't started yet, see `uw_plan.md`.
+full build history and the API layer build plan, see `uw_plan.md`.
 
 ## ⚙️ How it works
 
@@ -156,5 +156,5 @@ sql/
 docker-compose.yml               Postgres 16, applies phase1-7 (not phase6_tests) on first run
 scripts/run_tests.sh             runs phase6_tests.sql against the running container
 scripts/reset_db.sh              wipes the volume and rebuilds from scratch
-uw_plan.md                       full build history + the API layer plan we haven't started
+uw_plan.md                       full build history + the API layer build plan (Part 2)
 ```
