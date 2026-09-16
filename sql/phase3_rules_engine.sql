@@ -1,5 +1,5 @@
 -- Phase 3 — rules engine + evaluation functions
--- See ../uw_plan.md for the full build plan.
+-- See ../README.md for the big picture.
 --
 -- Depends on: sql/phase1_core_schema.sql, sql/phase2_expected_answer.sql
 

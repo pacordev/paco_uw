@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Quote Lifecycle Sequence",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [900, 1580]
+  },
+  "participants": [
+    { "id": "client", "type": "frontend", "label": "Client", "sublabel": "React frontend" },
+    { "id": "api", "type": "backend", "label": "FastAPI", "sublabel": "routers" },
+    { "id": "pool", "type": "backend", "label": "asyncpg Pool", "sublabel": "db.py" },
+    { "id": "pg", "type": "database", "label": "Postgres", "sublabel": "schema myins" }
+  ],
+  "segments": [
+    { "from": 160, "to": 460, "label": "Browse catalog" },
+    { "from": 490, "to": 620, "label": "Create quote" },
+    { "from": 650, "to": 935, "label": "Submit answers" },
+    { "from": 960, "to": 1321, "label": "Evaluate" },
+    { "from": 1356, "to": 1491, "label": "Wrong token (error path)" }
+  ],
+  "messages": [
+    { "id": "get-products", "from": "client", "to": "api", "y": 185, "label": "GET /products", "variant": "emphasis", "note": "every call first passes CORS + rate-limit middleware" },
+    { "id": "q-products", "from": "api", "to": "pg", "y": 223, "label": "SELECT insurance_product", "variant": "default" },
+    { "id": "r-products", "from": "pg", "to": "api", "y": 261, "label": "rows", "variant": "return" },
+    { "id": "res-products", "from": "api", "to": "client", "y": 299, "label": "200 products[]", "variant": "return" },
+
+    { "id": "get-questions", "from": "client", "to": "api", "y": 344, "label": "GET /products/{code}/questions", "variant": "emphasis" },
+    { "id": "q-questions", "from": "api", "to": "pg", "y": 382, "label": "JOIN product_question, uw_question", "variant": "default" },
+    { "id": "r-questions", "from": "pg", "to": "api", "y": 420, "label": "rows", "variant": "return" },
+    { "id": "res-questions", "from": "api", "to": "client", "y": 458, "label": "200 questions[] — no expected_answer", "variant": "return" },
+
+    { "id": "post-quotes", "from": "client", "to": "api", "y": 503, "label": "POST /quotes {product_code}", "variant": "emphasis" },
+    { "id": "q-insert-quote", "from": "api", "to": "pg", "y": 541, "label": "INSERT quote RETURNING id, access_token", "variant": "default" },
+    { "id": "r-insert-quote", "from": "pg", "to": "api", "y": 579, "label": "quote_id, access_token", "variant": "return" },
+    { "id": "res-quotes", "from": "api", "to": "client", "y": 617, "label": "201 {quote_id, access_token}", "variant": "return", "note": "access_token is shown exactly once — client must store it" },
+
+    { "id": "post-answers", "from": "client", "to": "api", "y": 662, "label": "POST /quotes/{id}/answers + X-Quote-Token", "variant": "emphasis" },
+    { "id": "q-verify-a", "from": "api", "to": "pg", "y": 700, "label": "verify quote_id + access_token", "variant": "security" },
+    { "id": "r-verify-a", "from": "pg", "to": "api", "y": 738, "label": "match", "variant": "return" },
+    { "id": "q-begin-a", "from": "api", "to": "pool", "y": 776, "label": "acquire + BEGIN", "variant": "default" },
+    { "id": "q-upsert", "from": "pool", "to": "pg", "y": 814, "label": "upsert answers (trigger validates answer_type)", "variant": "emphasis" },
+    { "id": "r-upsert", "from": "pg", "to": "pool", "y": 852, "label": "ok", "variant": "return" },
+    { "id": "r-commit-a", "from": "pool", "to": "api", "y": 890, "label": "COMMIT", "variant": "return" },
+    { "id": "res-answers", "from": "api", "to": "client", "y": 928, "label": "200 {quote_id, answers[]}", "variant": "return" },
+
+    { "id": "post-evaluate", "from": "client", "to": "api", "y": 973, "label": "POST /quotes/{id}/evaluate {strategy}", "variant": "emphasis" },
+    { "id": "q-verify-e", "from": "api", "to": "pg", "y": 1011, "label": "verify quote_id + access_token", "variant": "security" },
+    { "id": "r-verify-e", "from": "pg", "to": "api", "y": 1049, "label": "match", "variant": "return" },
+    { "id": "q-begin-e", "from": "api", "to": "pool", "y": 1087, "label": "acquire + BEGIN", "variant": "default" },
+    { "id": "q-eval-fn", "from": "pool", "to": "pg", "y": 1125, "label": "evaluate_and_record_quote(id, strategy)", "variant": "emphasis" },
+    { "id": "r-eval-fn", "from": "pg", "to": "pool", "y": 1163, "label": "outcome", "variant": "return" },
+    { "id": "q-trigger-fn", "from": "pool", "to": "pg", "y": 1201, "label": "uw_evaluation_trigger(id, strategy)", "variant": "default", "note": "same transaction, right after — not persisted" },
+    { "id": "r-trigger-fn", "from": "pg", "to": "pool", "y": 1239, "label": "rule_id (or NULL)", "variant": "return" },
+    { "id": "r-commit-e", "from": "pool", "to": "api", "y": 1277, "label": "COMMIT", "variant": "return" },
+    { "id": "res-evaluate", "from": "api", "to": "client", "y": 1315, "label": "200 {outcome, evaluated_at, trigger}", "variant": "return" },
+
+    { "id": "post-wrong-token", "from": "client", "to": "api", "y": 1369, "label": "POST /quotes/{id}/answers + wrong X-Quote-Token", "variant": "dashed" },
+    { "id": "q-verify-err", "from": "api", "to": "pg", "y": 1407, "label": "verify quote_id + access_token", "variant": "security" },
+    { "id": "r-verify-err", "from": "pg", "to": "api", "y": 1445, "label": "no match", "variant": "return" },
+    { "id": "res-err", "from": "api", "to": "client", "y": 1483, "label": "404 Unknown quote_id", "variant": "dashed", "note": "identical message for a wrong token or a nonexistent quote_id — no oracle" }
+  ],
+  "activations": [
+    { "participant": "api", "from": 185, "to": 299, "type": "backend" },
+    { "participant": "api", "from": 344, "to": 458, "type": "backend" },
+    { "participant": "api", "from": 503, "to": 617, "type": "backend" },
+    { "participant": "api", "from": 662, "to": 928, "type": "backend" },
+    { "participant": "api", "from": 973, "to": 1315, "type": "backend" },
+    { "participant": "api", "from": 1369, "to": 1483, "type": "backend" },
+
+    { "participant": "pg", "from": 223, "to": 261, "type": "database" },
+    { "participant": "pg", "from": 382, "to": 420, "type": "database" },
+    { "participant": "pg", "from": 541, "to": 579, "type": "database" },
+    { "participant": "pg", "from": 700, "to": 738, "type": "database" },
+    { "participant": "pg", "from": 814, "to": 852, "type": "database" },
+    { "participant": "pg", "from": 1011, "to": 1049, "type": "database" },
+    { "participant": "pg", "from": 1125, "to": 1163, "type": "database" },
+    { "participant": "pg", "from": 1201, "to": 1239, "type": "database" },
+    { "participant": "pg", "from": 1407, "to": 1445, "type": "database" },
+
+    { "participant": "pool", "from": 776, "to": 890, "type": "backend" },
+    { "participant": "pool", "from": 1087, "to": 1277, "type": "backend" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Read path", "items": ["GET /products and its questions never touch the pool's transactional path", "expected_answer is excluded at the query boundary, not filtered client-side"] },
+    { "dot": "amber", "title": "Write path", "items": ["Both /answers and /evaluate hold one connection across BEGIN...COMMIT", "The quote_answer validation trigger runs inside that transaction — one bad answer rolls the whole batch back"] },
+    { "dot": "rose", "title": "No-oracle 404", "items": ["A wrong X-Quote-Token and a nonexistent quote_id return the identical 404", "A caller can never use the response to tell which case it hit"] },
+    { "dot": "orange", "title": "Trigger, computed not stored", "items": ["uw_evaluation_trigger() runs right after evaluate_and_record_quote(), same transaction, same connection", "quote_evaluation itself is untouched — the trigger only ever leaves as part of the JSON response"] }
+  ]
+}

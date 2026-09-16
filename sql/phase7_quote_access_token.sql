@@ -1,5 +1,5 @@
 -- Phase 7 — quote ownership token
--- See ../uw_plan.md for the full build plan (Part 2, Phase E).
+-- See ../README.md for the big picture.
 --
 -- Depends on: sql/phase1_core_schema.sql .. sql/phase6_seed_data.sql
 

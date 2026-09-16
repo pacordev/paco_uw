@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Underwriting Runtime Architecture",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "frontend", "type": "frontend", "label": "React Frontend", "sublabel": "underwritting_web", "pos": [40, 230], "size": [160, 60] },
+    { "id": "test_clients", "type": "external", "label": "Postman / pytest / Notebook", "sublabel": "API-only test & demo clients", "pos": [40, 480], "size": [190, 60] },
+    { "id": "mw", "type": "security", "label": "CORS + Rate Limit", "sublabel": "public + admin routes alike", "pos": [280, 355], "size": [160, 60] },
+    { "id": "routers", "type": "backend", "label": "Routers", "sublabel": "products.py, quotes.py, admin.py", "pos": [510, 355], "size": [170, 60] },
+    { "id": "pool", "type": "backend", "label": "asyncpg Pool", "sublabel": "db.py, search_path=myins", "pos": [750, 355], "size": [160, 60] },
+    { "id": "neon", "type": "database", "label": "Neon Postgres", "sublabel": "uw_app role, direct/unpooled", "pos": [980, 355], "size": [160, 60] },
+    { "id": "local_pg", "type": "database", "label": "Postgres 16 (docker)", "sublabel": "SQL test suite only, isolated", "pos": [980, 610], "size": [160, 60] },
+    { "id": "vercel", "type": "cloud", "label": "Vercel", "sublabel": "React frontend (planned deploy)", "pos": [280, 610], "size": [160, 60] },
+    { "id": "render", "type": "cloud", "label": "Render", "sublabel": "FastAPI (planned deploy)", "pos": [510, 610], "size": [170, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Running today", "wraps": ["frontend", "test_clients", "mw", "routers", "pool", "neon"], "pad": 26 },
+    { "kind": "security-group", "label": "FastAPI app (underwritting_api)", "wraps": ["mw", "routers", "pool"] },
+    { "kind": "region", "label": "SQL test suite — separate from live traffic", "wraps": ["local_pg"], "pad": 20 },
+    { "kind": "region", "label": "Production hosting — planned, not deployed", "wraps": ["vercel", "render"], "pad": 26 }
+  ],
+  "connections": [
+    { "id": "frontend-to-mw", "from": "frontend", "to": "mw", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "tests-to-mw", "from": "test_clients", "to": "mw", "label": "HTTP", "variant": "dashed" },
+    { "id": "mw-to-routers", "from": "mw", "to": "routers" },
+    { "id": "routers-to-pool", "from": "routers", "to": "pool", "label": "asyncpg" },
+    { "id": "pool-to-neon", "from": "pool", "to": "neon", "label": "SQL over TLS" },
+    { "id": "vercel-to-render", "from": "vercel", "to": "render", "label": "HTTPS", "variant": "dashed" },
+    { "id": "render-to-neon", "from": "render", "to": "neon", "label": "direct, unpooled", "variant": "dashed" },
+    { "id": "routers-to-render", "from": "routers", "to": "render", "label": "deploys to (planned)", "variant": "dashed", "labelDy": 24 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Request path", "items": ["Every request — public or admin — passes CORS then rate-limit middleware before reaching a router", "GET /health round-trips Postgres directly, not just process liveness"] },
+    { "dot": "amber", "title": "Rate limiting", "items": ["slowapi, in-memory storage, keyed by X-Forwarded-For (not raw socket IP)", "60/min default; POST /quotes 10/min, /answers 30/min, /evaluate 20/min; all four admin routes 20/min"] },
+    { "dot": "rose", "title": "Quote-ownership token", "items": ["X-Quote-Token required on /answers and /evaluate", "A wrong token and an unknown quote_id return the identical 404 — no oracle"] },
+    { "dot": "orange", "title": "Admin key", "items": ["Single static X-Admin-Key, checked with secrets.compare_digest (not !=)", "Gates catalog writes and the rules-read endpoint — a rule's conditions are the answer key"] },
+    { "dot": "violet", "title": "Production target", "items": ["Vercel + Render — the planned hosting target, not deployed yet", "Neon is already the real database in active use today, not just a future target"] }
+  ]
+}

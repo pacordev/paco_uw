@@ -1,9 +1,8 @@
-# 🛡️ Underwriting Rules Engine
+# 🛡️ My underwriting Rules Engine
 
 A data-driven insurance underwriting engine, built entirely in PostgreSQL. Products,
 questions, and rules all live in tables — adding a new product or tweaking a rule is just a
-data change, not a code change. If you want the full requirements, check `goal.txt`; for the
-full build history and the API layer build plan, see `uw_plan.md`.
+data change, not a code change. If you want my full requirements (simple reqs, check `goal.txt`.
 
 ## ⚙️ How it works
 
@@ -105,41 +104,9 @@ just want "what's the current status" without caring about the history table's r
 | `evaluate_quote_full(quote_id)` | Model A — worst outcome across everything that matched. |
 | `evaluate_quote_short_circuit(quote_id)` | Model B — stops early on a matching stop-rule, falls back to Model A otherwise. |
 | `evaluate_and_record_quote(quote_id, strategy)` | Runs a strategy and saves the outcome to `quote_evaluation`. Only function that actually writes an outcome. |
+| `uw_short_circuit_stop_rule(quote_id)` | The stop-rule (if any) that would end Model B's walk early — `evaluate_quote_short_circuit` calls this instead of repeating its own walk. |
+| `uw_evaluation_trigger(quote_id, strategy)` | Which rule *decided* a strategy's outcome — `NULL` when nothing matched. Not stored anywhere; the API computes it fresh alongside every evaluation. |
 
-## 🗺️ Where things stand
-
-**✅ The database (done):** we built this in 6 phases, each one a separate file in `sql/`, and
-all 80 tests are green against Postgres 16.
-
-1. Core schema — products, questions, quote, quote_answer
-2. `expected_answer` added to `product_question`
-3. Rules engine — `uw_rule`, conditions, Model A / Model B
-4. Evaluation history — `quote_evaluation`, `evaluate_and_record_quote`
-5. Production hardening — uniqueness constraints, indexes, the answer-validation trigger
-6. Seed data (8 products) + the full test suite
-
-We deliberately left a couple of things out of v1: rule versioning (editing a rule changes
-how *past* quotes would re-evaluate — no snapshotting), and multi-quote-per-application
-modeling.
-
-**✅ The API layer (built, in a sibling repo):** a thin Python + FastAPI layer over the SQL
-above — no business logic duplicated in app code — lives in
-[`underwritting_api`](../underwritting_api). Public, applicant-facing endpoints:
-
-- `GET /products`
-- `GET /products/{code}/questions` (never returns `expected_answer` — that'd leak the answer key)
-- `POST /quotes` → `{quote_id, access_token}`
-- `POST /quotes/{quote_id}/answers`
-- `POST /quotes/{quote_id}/evaluate` → `{outcome}`
-
-Plus admin-only endpoints (behind an `X-Admin-Key` header) for building the catalog itself —
-`POST /products`, `POST /products/{code}/questions`, `POST /products/{code}/rules` — so a new
-product/rule can be added from a request instead of a hand-written SQL file, while staying
-true to "it's a data change, not a code change." See `underwritting_api/README.md` for the
-full contract, security model, and how to run/test it.
-
-`uw_plan.md` is the living version of this — phase-by-phase, checked off as we go — so check
-there for anything more current than what's written here.
 
 ## 📁 Project structure
 
@@ -153,8 +120,9 @@ sql/
   phase6_seed_data.sql          8 demo products with questions, rules, and demo quotes
   phase6_tests.sql              80-assertion test suite (unit-level + per-product demo checks)
   phase7_quote_access_token.sql adds quote.access_token, so a bare quote_id can't be guessed
-docker-compose.yml               Postgres 16, applies phase1-7 (not phase6_tests) on first run
+  phase8_evaluation_trigger.sql adds "which rule decided this outcome" lookup functions
+docker-compose.yml               Postgres 16, applies phase1-8 (not phase6_tests) on first run
 scripts/run_tests.sh             runs phase6_tests.sql against the running container
 scripts/reset_db.sh              wipes the volume and rebuilds from scratch
-uw_plan.md                       full build history + the API layer build plan (Part 2)
+goal.txt                         initial simple requirements I created, as a target MVP.
 ```

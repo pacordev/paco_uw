@@ -1,5 +1,5 @@
 -- Phase 6 — test suite
--- See ../uw_plan.md for the full build plan.
+-- See ../README.md for the big picture.
 --
 -- Unit-level building blocks plus formal demo-data assertions for all 8
 -- seeded products, including a deliberate Model A / Model B divergence case

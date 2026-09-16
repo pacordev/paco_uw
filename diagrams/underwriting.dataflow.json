@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Underwriting Data Flow",
+    "quality_profile": "showcase",
+    "viewBox": [1080, 780]
+  },
+  "stages": [
+    { "label": "Seed (once)" },
+    { "label": "Reference data" },
+    { "label": "Per-quote data" },
+    { "label": "Evaluate" },
+    { "label": "Consume" }
+  ],
+  "nodes": [
+    { "id": "seed_sql", "type": "external", "label": "sql/phase1..8*.sql", "sublabel": "fresh volume only", "stage": 0, "row": 1, "width": 140 },
+
+    { "id": "ref_products", "type": "database", "label": "Product & Question Tables", "sublabel": "3 tables, seeded once", "stage": 1, "row": 0, "width": 160 },
+    { "id": "ref_rules", "type": "database", "label": "Rule Tables", "sublabel": "2 tables, seeded once", "stage": 1, "row": 1 },
+    { "id": "expected_answer", "type": "database", "label": "expected_answer", "sublabel": "informational only", "stage": 1, "row": 3, "width": 160 },
+
+    { "id": "quote_answer", "type": "database", "label": "Quote & Answers", "sublabel": "quote, quote_answer", "stage": 2, "row": 0 },
+
+    { "id": "trigger_fn", "type": "backend", "label": "uw_evaluation_trigger()", "sublabel": "which rule decided it", "stage": 3, "row": 0, "width": 170 },
+    { "id": "evaluate_fn", "type": "backend", "label": "evaluate_and_record_quote()", "sublabel": "full or short_circuit", "stage": 3, "row": 1, "width": 170 },
+    { "id": "quote_evaluation", "type": "database", "label": "quote_evaluation", "sublabel": "one row per run", "stage": 3, "row": 2 },
+
+    { "id": "api_response", "type": "backend", "label": "API Response", "sublabel": "JSON to client", "stage": 4, "row": 0 },
+    { "id": "latest_view", "type": "database", "label": "quote_latest_evaluation", "sublabel": "newest per strategy", "stage": 4, "row": 2, "width": 170 },
+    { "id": "blocked", "type": "security", "label": "Blocked", "sublabel": "excluded from response", "stage": 4, "row": 3 }
+  ],
+  "flows": [
+    { "id": "seed-products", "from": "seed_sql", "to": "ref_products", "label": "CREATE + INSERT (phase 1, 6)", "variant": "default", "labelDy": 26 },
+    { "id": "seed-rules", "from": "seed_sql", "to": "ref_rules", "label": "CREATE + INSERT (phase 3, 6)", "variant": "default", "labelDy": 53, "labelDx": 70 },
+    { "id": "seed-expected", "from": "seed_sql", "to": "expected_answer", "label": "phase 2 column, phase 6 values", "variant": "default" },
+
+    { "id": "trigger-validate", "from": "ref_products", "to": "quote_answer", "label": "answer_type checked by trigger", "variant": "security", "route": "straight", "labelDy": 53 },
+
+    { "id": "answers-to-eval", "from": "quote_answer", "to": "evaluate_fn", "label": "quote_answer rows", "variant": "emphasis" },
+    { "id": "rules-to-eval", "from": "ref_rules", "to": "evaluate_fn", "label": "uw_rule + uw_rule_condition", "variant": "emphasis", "route": "straight" },
+    { "id": "eval-to-trigger", "from": "evaluate_fn", "to": "trigger_fn", "label": "same inputs, right after", "variant": "default", "route": "straight" },
+
+    { "id": "eval-to-history", "from": "evaluate_fn", "to": "quote_evaluation", "label": "INSERT, append-only", "variant": "emphasis", "labelDy": 24 },
+    { "id": "history-to-view", "from": "quote_evaluation", "to": "latest_view", "label": "DISTINCT ON quote_id, strategy", "variant": "default", "route": "straight", "labelDy": 53 },
+
+    { "id": "trigger-to-response", "from": "trigger_fn", "to": "api_response", "label": "outcome, evaluated_at, trigger", "variant": "default", "labelAt": [895, 200] },
+    { "id": "products-to-response", "from": "ref_products", "to": "api_response", "label": "code, text, answer_type, options", "variant": "default", "route": "top-channel" },
+
+    { "id": "expected-blocked", "from": "expected_answer", "to": "blocked", "label": "excluded from GET /questions", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Static vs. per-session data", "items": ["insurance_product, uw_question, and uw_rule are seeded once and never change at request time", "quote, quote_answer, and quote_evaluation grow with every real session"] },
+    { "dot": "amber", "title": "Validation at the boundary", "items": ["The Phase 5 trigger checks every quote_answer write against its question's answer_type/enum_options before it's stored", "Bad data never reaches the evaluation functions"] },
+    { "dot": "rose", "title": "expected_answer never leaves Postgres", "items": ["A real seeded column, used for reference only — it never drives an outcome", "GET /products/{code}/questions deliberately excludes it: leaking it would hand an applicant the answer key"] },
+    { "dot": "orange", "title": "Trigger lookup is computed, not stored", "items": ["The API calls uw_evaluation_trigger() right after evaluate_and_record_quote(), same transaction, re-deriving which rule decided it from the same rule tables", "quote_evaluation itself never gained a column for this — nothing here changed shape, just what the API assembles on the way out"] }
+  ]
+}

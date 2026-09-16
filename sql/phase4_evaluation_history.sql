@@ -1,5 +1,5 @@
 -- Phase 4 — evaluation persistence & audit trail
--- See ../uw_plan.md for the full build plan.
+-- See ../README.md for the big picture.
 --
 -- Depends on: sql/phase1_core_schema.sql, sql/phase3_rules_engine.sql
 

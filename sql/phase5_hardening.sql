@@ -1,5 +1,5 @@
 -- Phase 5 — production hardening
--- See ../uw_plan.md for the full build plan.
+-- See ../README.md for the big picture.
 --
 -- Depends on: sql/phase1_core_schema.sql .. sql/phase4_evaluation_history.sql
 

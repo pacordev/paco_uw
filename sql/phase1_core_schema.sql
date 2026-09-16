@@ -1,5 +1,5 @@
 -- Phase 1 — core entity schema (quote-based naming)
--- See ../uw_plan.md for the full build plan.
+-- See ../README.md for the big picture.
 --
 -- Scope: products, the question pool, product-to-question linkage (ordering),
 -- and the quote/answer pair everything else hangs off of. No rules or

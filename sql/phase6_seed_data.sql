@@ -1,5 +1,5 @@
 -- Phase 6 — seed data: 8 demo products
--- See ../uw_plan.md for the full build plan.
+-- See ../README.md for the big picture.
 --
 -- Depends on: sql/phase1_core_schema.sql .. sql/phase5_hardening.sql
 --

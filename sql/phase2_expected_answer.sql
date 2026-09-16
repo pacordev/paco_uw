@@ -1,5 +1,5 @@
 -- Phase 2 — expected answer
--- See ../uw_plan.md for the full build plan.
+-- See ../README.md for the big picture.
 --
 -- Informational only: documents what a "clean" answer looks like for a
 -- question on a given product, e.g. for UI hints or QA review. It does not
