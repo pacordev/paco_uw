@@ -5044,7 +5044,7 @@
         <path data-edge-from="mw" data-edge-to="routers" data-edge-key="2" data-edge-id="mw-to-routers" data-composition-points="440,385;510,385" d="M 440 385 L 510 385" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="routers" data-edge-to="pool" data-edge-label="asyncpg" data-edge-key="3" data-edge-id="routers-to-pool" data-composition-points="680,385;750,385" d="M 680 385 L 750 385" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="pool" data-edge-to="neon" data-edge-label="SQL over TLS" data-edge-key="4" data-edge-id="pool-to-neon" data-composition-points="910,378;980,378" d="M 910 378 L 980 378" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="vercel" data-edge-to="render" data-edge-label="HTTPS" data-edge-key="5" data-edge-id="vercel-to-render" data-composition-points="440,640;510,640" d="M 440 640 L 510 640" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path data-edge-from="vercel" data-edge-to="render" data-edge-label="HTTPS" data-edge-key="5" data-edge-id="vercel-to-render" data-composition-points="440,640;510,640" d="M 440 640 L 510 640" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="render" data-edge-to="neon" data-edge-label="direct, unpooled" data-edge-key="6" data-edge-id="render-to-neon" data-composition-points="680,640;956,640;956,392;980,392" d="M 680 640 L 948 640 Q 956 640 956 632 L 956 400 Q 956 392 964 392 L 980 392" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="routers" data-edge-to="render" data-edge-label="deployed to" data-edge-key="7" data-edge-id="routers-to-render" data-composition-points="595,415;595,610" d="M 595 415 L 595 610" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
 
@@ -5133,15 +5133,15 @@
         <text data-detail="context" x="1060" y="654" class="t-muted" font-size="8.7" text-anchor="middle">SQL test suite only, isolated</text>
         </g>
 
-        <g id="node-vercel" data-node-id="vercel" data-node-label="Vercel" tabindex="0" role="button" aria-label="Focus Vercel, React frontend (not deployed), Production hosting" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="React frontend (not deployed)" data-node-context="Production hosting">
-          <title>Vercel · React frontend (not deployed) · Production hosting</title>
+        <g id="node-vercel" data-node-id="vercel" data-node-label="Vercel" tabindex="0" role="button" aria-label="Focus Vercel, React frontend — deployed, Production hosting" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="React frontend — deployed" data-node-context="Production hosting">
+          <title>Vercel · React frontend — deployed · Production hosting</title>
           <rect x="280" y="610" width="160" height="60" rx="6" class="c-mask"/>
           <rect x="280" y="610" width="160" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(286 616) scale(0.6875)">
             <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="360" y="638" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Vercel</text>
-        <text data-detail="context" x="360" y="654" class="t-muted" font-size="8.7" text-anchor="middle">React frontend (not deployed)</text>
+        <text data-detail="context" x="360" y="654" class="t-muted" font-size="9" text-anchor="middle">React frontend — deployed</text>
         </g>
 
         <g id="node-render" data-node-id="render" data-node-label="Render" tabindex="0" role="button" aria-label="Focus Render, FastAPI — deployed, Production hosting" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="FastAPI — deployed" data-node-context="Production hosting">
@@ -5175,7 +5175,7 @@
         </g>
         <g data-detail="context" data-edge-from="vercel" data-edge-to="render" data-edge-label="HTTPS" data-edge-key="5" data-edge-id="vercel-to-render">
           <rect x="458" y="620" width="34" height="14" rx="3" class="c-mask"/>
-          <text x="475" y="630" class="t-messagebus" font-size="8" text-anchor="middle">HTTPS</text>
+          <text x="475" y="630" class="t-muted" font-size="8" text-anchor="middle">HTTPS</text>
         </g>
         <g data-detail="context" data-edge-from="render" data-edge-to="neon" data-edge-label="direct, unpooled" data-edge-key="6" data-edge-id="render-to-neon">
           <rect x="912.6" y="496" width="86.8" height="14" rx="3" class="c-mask"/>
@@ -5471,8 +5471,8 @@
           <h3>Production status</h3>
         </div>
         <ul>
-          <li>&bull; Render: deployed at underwriting-api-4ky9.onrender.com, connects directly to Neon</li>
-          <li>&bull; Vercel: not deployed yet — ALLOWED_ORIGINS on Render is still scoped to local dev origins</li>
+          <li>&bull; Full stack deployed: Vercel to Render to Neon, all real</li>
+          <li>&bull; Render&#39;s ALLOWED_ORIGINS includes the exact Vercel origin, no trailing slash</li>
         </ul>
       </div>
     </div>
