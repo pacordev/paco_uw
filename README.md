@@ -4,6 +4,18 @@ A data-driven insurance underwriting engine, built entirely in PostgreSQL. Produ
 questions, and rules all live in tables — adding a new product or tweaking a rule is just a
 data change, not a code change. If you want my full requirements (simple reqs, check `goal.txt`.
 
+## 🗺️ Diagrams
+
+Three interactive views of the system — pan, zoom, search, and trace relationships live in
+the browser:
+
+- [**Architecture**](https://pacordev.github.io/paco_uw/diagrams/underwriting-architecture.html) — runtime components, request path, rate limiting, and the admin key
+- [**Data flow**](https://pacordev.github.io/paco_uw/diagrams/underwriting-dataflow.html) — how seed data, quote answers, and evaluation results move through the tables
+- [**Sequence**](https://pacordev.github.io/paco_uw/diagrams/underwriting-sequence.html) — the full quote lifecycle call by call, including the wrong-token error path
+
+Source specs are in `diagrams/*.json`; the `.html` files are generated from them and
+published via GitHub Pages.
+
 ## ⚙️ How it works
 
 An applicant works through a **quote**: we show them a product's questions in order, they
