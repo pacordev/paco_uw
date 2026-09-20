@@ -40,7 +40,7 @@ A live demo of the engine is available at [paco-uw-web.vercel.app](https://paco-
 ## 🏗️ Architecture
 
 <p align="center">
-  <img src="uw_architecture.png" alt="Architecture diagram" width="800">
+  <img src="assets/uw_architecture.png" alt="Architecture diagram" width="800">
 </p>
 
 <p align="center">
@@ -82,3 +82,7 @@ The FastAPI layer includes contract and integration tests covering health checks
 ## 🛠️ Technology
 
 Python · FastAPI · PostgreSQL · asyncpg · Docker · pytest · SQL
+
+## 📚 Further Reading
+
+For the full data model, the two evaluation strategies, the core SQL functions, and local setup, see the [Technical Reference](docs/TECHNICAL.md).
